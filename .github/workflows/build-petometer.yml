@@ -1,0 +1,34 @@
+name: Build Peto Meter EXE
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "PetoMeter.cs"
+      - ".github/workflows/build-petometer.yml"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compile Windows GUI executable
+        shell: pwsh
+        run: |
+          $csc = "$env:WINDIR\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe"
+          if (!(Test-Path $csc)) {
+            $csc = "$env:WINDIR\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe"
+          }
+          if (!(Test-Path $csc)) { throw "C# compiler not found on Windows runner." }
+          & $csc /nologo /target:winexe /optimize+ /out:PetoMeter.exe /r:System.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll PetoMeter.cs
+          if ($LASTEXITCODE -ne 0) { throw "Compilation failed with exit code $LASTEXITCODE" }
+          if (!(Test-Path PetoMeter.exe)) { throw "PetoMeter.exe was not created." }
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: PetoMeter-Windows-EXE
+          path: PetoMeter.exe
+          if-no-files-found: error
