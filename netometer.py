@@ -234,20 +234,20 @@ class NetoMeterApp:
     def _build_mini(self):
         # Compact DU Meter-inspired overlay: graph above, paired live readouts below.
         self.mini = tk.Frame(self.root, bg="#18212a", bd=1, relief="solid")
-        self.mini_graph = tk.Canvas(self.mini, width=300, height=112, bg="#18212a",
+        self.mini_graph = tk.Canvas(self.mini, width=190, height=64, bg="#18212a",
                                     highlightthickness=1, highlightbackground="#91a9b7")
         self.mini_graph.pack(fill="x", padx=5, pady=(5, 2))
         readings = tk.Frame(self.mini, bg="#18212a")
-        readings.pack(fill="x", padx=5, pady=(0, 5))
+        readings.pack(fill="x", padx=4, pady=(0, 4))
         self.mini_down = tk.Label(readings, text="↓ 0.0 Kbps", bg="#dce9e7", fg="#8b4b32",
-                                  font=("Segoe UI", 10, "bold"), padx=8, pady=4)
-        self.mini_down.pack(side="left", fill="x", expand=True, padx=(0, 2))
+                                  font=("Segoe UI", 9, "bold"), padx=5, pady=2)
+        self.mini_down.pack(side="top", fill="x", expand=True, pady=(0, 2))
         self.mini_up = tk.Label(readings, text="↑ 0.0 Kbps", bg="#dce9e7", fg="#287d45",
-                                font=("Segoe UI", 10, "bold"), padx=8, pady=4)
-        self.mini_up.pack(side="left", fill="x", expand=True, padx=(2, 0))
+                                font=("Segoe UI", 9, "bold"), padx=5, pady=2)
+        self.mini_up.pack(side="top", fill="x", expand=True, pady=(2, 0))
         self.mini_hint = tk.Label(self.mini, text="Double-click to restore  •  Drag to move",
                                   bg="#18212a", fg="#c3d0d8", font=("Segoe UI", 7))
-        self.mini_hint.pack(pady=(0, 3))
+        self.mini_hint.pack(pady=(0, 2))
         for w in (self.mini, self.mini_graph, readings, self.mini_down, self.mini_up, self.mini_hint):
             w.bind("<ButtonPress-1>", self._drag_start)
             w.bind("<B1-Motion>", self._drag_move)
