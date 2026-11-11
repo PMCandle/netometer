@@ -9,8 +9,8 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install build tools
@@ -18,7 +18,7 @@ jobs:
       - name: Build EXE
         run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name NetoMeter netometer.py
       - name: Upload EXE
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: NetoMeter-exe
           path: dist/NetoMeter.exe
