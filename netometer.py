@@ -8,6 +8,7 @@ import sys
 import time
 from collections import deque
 import psutil
+from settings import SettingsDialog, load_settings
 try:
     import tkinter as tk
     from tkinter import ttk
@@ -152,7 +153,8 @@ class NetoMeterApp:
         self.mini_mode = False
         self.normal_geometry = None
         self._drag = (0, 0)
-        self.units_var = tk.StringVar(value="Bytes/s")
+        self.settings = load_settings()
+        self.units_var = tk.StringVar(value="Bits/s" if "Bits" in self.settings.get("rate_units", "Bits") else "Bytes/s")
         self.iface_var = tk.StringVar(value=ALL_ADAPTERS)
         self.top_var = tk.BooleanVar(value=False)
         self._style()
@@ -186,6 +188,7 @@ class NetoMeterApp:
         head = tk.Frame(self.main, bg=BG); head.pack(fill="x")
         tk.Label(head, text="NETO METER", bg=BG, fg=FG, font=("Segoe UI", 16, "bold")).pack(side="left")
         btns = tk.Frame(head, bg=BG); btns.pack(side="right")
+        self._button(btns, "Settings", self.open_settings).pack(side="left", padx=3)
         self._button(btns, "Mini", self.enter_mini).pack(side="left", padx=3)
         self._button(btns, "Taskbar Band", self.toggle_taskbar_band).pack(side="left", padx=3)
         self._button(btns, "History", self.show_history).pack(side="left", padx=3)
@@ -223,6 +226,20 @@ class NetoMeterApp:
         tk.Checkbutton(opts, text="Always on top", variable=self.top_var, command=self.on_top,
                        bg=BG, fg=FG, selectcolor=PANEL, activebackground=BG,
                        activeforeground=FG, highlightthickness=0).pack(side="left")
+
+    def open_settings(self):
+        SettingsDialog(self.root, adapters=self.sampler.interfaces(), on_save=self.apply_settings)
+
+    def apply_settings(self, data):
+        self.settings = data
+        self.units_var.set("Bits/s" if "Bits" in data.get("rate_units", "Bits") else "Bytes/s")
+        selected = [name for name, enabled in data.get("adapters", {}).items() if enabled]
+        self.sampler.iface = selected[0] if len(selected) == 1 else None
+        self.top_var.set(bool(data.get("always_on_top", True)))
+        if self.mini_mode:
+            self.root.attributes("-alpha", max(0.1, min(1.0, float(data.get("window_alpha", 78)) / 100)))
+        self.on_top()
+        self.refresh_view()
 
     def _speed_panel(self, parent, title, color, side):
         f = tk.Frame(parent, bg=PANEL)
