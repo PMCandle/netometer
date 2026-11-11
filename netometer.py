@@ -187,6 +187,7 @@ class NetoMeterApp:
         tk.Label(head, text="NETO METER", bg=BG, fg=FG, font=("Segoe UI", 16, "bold")).pack(side="left")
         btns = tk.Frame(head, bg=BG); btns.pack(side="right")
         self._button(btns, "Mini", self.enter_mini).pack(side="left", padx=3)
+        self._button(btns, "Taskbar Band", self.toggle_taskbar_band).pack(side="left", padx=3)
         self._button(btns, "History", self.show_history).pack(side="left", padx=3)
         self._button(btns, "Reset session", self.reset_session).pack(side="left", padx=3)
         row = tk.Frame(self.main, bg=BG); row.pack(fill="x", pady=(12, 8))
@@ -252,6 +253,45 @@ class NetoMeterApp:
             w.bind("<ButtonPress-1>", self._drag_start)
             w.bind("<B1-Motion>", self._drag_move)
             w.bind("<Double-Button-1>", lambda e: self.exit_mini())
+        self.taskbar_band = None
+        self.taskbar_down = None
+        self.taskbar_up = None
+
+    def toggle_taskbar_band(self):
+        if self.taskbar_band and self.taskbar_band.winfo_exists():
+            self.taskbar_band.destroy()
+            self.taskbar_band = None
+            self.taskbar_down = self.taskbar_up = None
+            return
+        # A compact taskbar-edge overlay, without installing a native Explorer deskband DLL.
+        self.taskbar_band = tk.Toplevel(self.root)
+        self.taskbar_band.overrideredirect(True)
+        self.taskbar_band.attributes("-topmost", True)
+        self.taskbar_band.attributes("-alpha", 0.92)
+        self.taskbar_band.configure(bg="#18212a")
+        bar = tk.Frame(self.taskbar_band, bg="#18212a", bd=1, relief="solid")
+        bar.pack(fill="both", expand=True)
+        self.taskbar_down = tk.Label(bar, text="↓ 0 Kbps", bg="#18212a", fg="#ff9f43",
+                                     font=("Segoe UI", 9, "bold"), padx=7, pady=3)
+        self.taskbar_down.pack(side="left")
+        tk.Frame(bar, bg="#52636d", width=1).pack(side="left", fill="y", pady=3)
+        self.taskbar_up = tk.Label(bar, text="↑ 0 Kbps", bg="#18212a", fg="#2ecc71",
+                                   font=("Segoe UI", 9, "bold"), padx=7, pady=3)
+        self.taskbar_up.pack(side="left")
+        self.taskbar_band.update_idletasks()
+        sw = self.root.winfo_screenwidth()
+        sh = self.root.winfo_screenheight()
+        width = self.taskbar_band.winfo_reqwidth()
+        height = self.taskbar_band.winfo_reqheight()
+        self.taskbar_band.geometry(f"+{sw - width - 12}+{sh - height - 48}")
+        self.update_taskbar_band()
+
+    def update_taskbar_band(self):
+        if not self.taskbar_band or not self.taskbar_band.winfo_exists():
+            return
+        down, up = self.down_hist[-1], self.up_hist[-1]
+        self.taskbar_down.config(text=f"↓ {fmt_speed(down, True)}")
+        self.taskbar_up.config(text=f"↑ {fmt_speed(up, True)}")
 
     def _drag_start(self, e):
         self._drag = (e.x_root - self.root.winfo_x(), e.y_root - self.root.winfo_y())
@@ -318,6 +358,7 @@ class NetoMeterApp:
         self.refresh_view(); self.root.after(INTERVAL_MS, self.tick)
     def refresh_view(self):
         down, up = self.down_hist[-1], self.up_hist[-1]
+        self.update_taskbar_band()
         if self.mini_mode:
             self.mini_down.config(text=f"↓ {fmt_speed(down, True)}")
             self.mini_up.config(text=f"↑ {fmt_speed(up, True)}")
