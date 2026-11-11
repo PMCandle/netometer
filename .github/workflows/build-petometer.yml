@@ -12,7 +12,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Compile Windows GUI executable
         shell: pwsh
@@ -27,7 +27,7 @@ jobs:
           if (!(Test-Path PetoMeter.exe)) { throw "PetoMeter.exe was not created." }
 
       - name: Upload EXE
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: PetoMeter-Windows-EXE
           path: PetoMeter.exe
